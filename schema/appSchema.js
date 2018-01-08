@@ -10,27 +10,26 @@ const {
 const mongoose = require('mongoose')
 
 let mongoSchema = mongoose.Schema({
-  title: String
+  title: String,
+  bahan: String
 })
 
 let mongoModel = mongoose.model('Resep', mongoSchema)
-
-const resepData = [{
-  title: 'ayam bakar'
-}]
 
 const ResepType = new GraphQLObjectType({
   name: 'Resep',
   description: '...',
   fields: () => ({
     title: { type: GraphQLString },
+    bahan: { type: GraphQLString }
   })
 })
 
 const ResepInputType = new GraphQLInputObjectType({
   name: 'ResepInput',
   fields: {
-    title: { type: GraphQLString }
+    title: { type: GraphQLString },
+    bahan: { type: GraphQLString }
   }
 })
 
@@ -58,8 +57,30 @@ const AppMutation = new GraphQLObjectType({
       args: {
         editParam: {
           name: 'edit resep',
-          type
+          type: ResepInputType
         }
+      },
+      resolve: async (root, args) => {
+        const { editParam } = args
+        await mongoModel.findOneAndUpdate(args)
+        let update = await mongoModel.find()
+        return update
+      }
+    },
+
+    deleteResep: {
+      type: new GraphQLList(ResepType),
+      args: {
+        deleteParam: {
+          name: 'delete resep',
+          type: ResepInputType
+        }
+      },
+      resolve: async (root, args) => {
+        const { deleteParam } = args
+        await mongoModel.findOneAndRemove(deleteParam)
+        let destroy = await mongoModel.find()
+        return destroy
       }
     }
   }
@@ -71,10 +92,7 @@ const appQuery = new GraphQLObjectType({
   fields: {
     resep: {
       type: new GraphQLList(ResepType),
-      resolve: async () => {
-        let a = await mongoModel.find()
-        return a
-      }
+      resolve: async () => await mongoModel.find()
     }
   }
 })
