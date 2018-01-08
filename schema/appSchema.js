@@ -47,9 +47,19 @@ const AppMutation = new GraphQLObjectType({
       },
       resolve: async (root, args) => {
         const { resepParam } = args
-        let save = await mongoModel.save(resepParam)
-        let data = await mongoModel.find()
-        return data
+        await mongoModel.create(resepParam)
+        let hasil = await mongoModel.find()
+        return hasil
+      }
+    },
+
+    editResep: {
+      type: new GraphQLList(ResepType),
+      args: {
+        editParam: {
+          name: 'edit resep',
+          type
+        }
       }
     }
   }
